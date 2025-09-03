@@ -1037,7 +1037,12 @@ src="https://www.facebook.com/tr?id=1497972024708962&ev=PageView&noscript=1"
   header-drawer {
     justify-self: start;
     margin-left: -1.2rem;
-  }@media screen and (min-width: 990px) {
+  }
+  .money{
+  visibility: hidden;
+}
+  
+  @media screen and (min-width: 990px) {
       header-drawer {
         display: none;
       }
@@ -4639,6 +4644,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 .upcart-backdrop.styles_CartPreview__backdrop__.styles_active__{
     display: none !important;
 }
+
 </style>
 
 
@@ -4727,12 +4733,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             // Update main price
             const priceElement = document.querySelector(`[data-product-type="price"][data-product-id="${productId}"] .money`);
             if (priceElement) {
+              priceElement.style.visibility = 'visible';
                 priceElement.textContent = pricing.price;
             }
             
             // Update compare at price
             const comparePriceElement = document.querySelector(`[data-product-type="compare_at_price"][data-product-id="${productId}"] .money`);
             if (comparePriceElement) {
+              comparePriceElement.style.visibility = 'visible';
                 comparePriceElement.textContent = pricing.comparePrice;
             }
             
@@ -4756,6 +4764,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         });
     }
 
+  
     // Function to get selected color for a specific product
     function getSelectedColor(productId) {
         const colorInputs = document.querySelectorAll(`input[name*="Color"][name*="${productId}"]:checked`);
@@ -4872,6 +4881,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     initializeRedirectHandlers();
     initializeVariantHandlers();
     updateProductPricing();
+
+    setInterval(updateProductPricing, 500); // Update pricing every 5 seconds in case of dynamic content
+
 
     // Public API for manual initialization (useful if content is loaded dynamically)
     window.productRedirectHandler = {
