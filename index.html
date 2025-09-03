@@ -4671,7 +4671,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     setInterval(replaceDollarInDOM, 10);
   </script>
 
-  <script>
+  <!-- <script>
     
     // Product variant redirect handler
 (function() {
@@ -4836,5 +4836,266 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 })();
 
 
+    </script> -->
+
+    <script>
+      // Product variant redirect handler with price management
+(function() {
+    // Define URL mappings for each product and color combination
+    const productUrlMappings = {
+        // Neck + Back Set (Product ID: 7344655990842)
+        '7344655990842': {
+            'Green': 'https://n2kzpa-uw.myshopify.com/cart/52339097010509:1',
+            'Purple': 'https://n2kzpa-uw.myshopify.com/cart/52339097043277:1', 
+            'Gray': 'https://n2kzpa-uw.myshopify.com/cart/52339097076045:1',
+            'Blue': 'https://n2kzpa-uw.myshopify.com/cart/52339097108813:1'
+        },
+        // Full Body Set (Product ID: 7310552924218)
+        '7310552924218': {
+            'Green': 'https://n2kzpa-uw.myshopify.com/cart/52339098911053:1',
+            'Purple': 'https://n2kzpa-uw.myshopify.com/cart/52339098976589:1',
+            'Gray': 'https://n2kzpa-uw.myshopify.com/cart/52339099042125:1', 
+            'Blue': 'https://n2kzpa-uw.myshopify.com/cart/52339099107661:1'
+        },
+        // 2x Full Body Set (Product ID: 7344674865210)
+        '7344674865210': {
+            'Green': 'https://n2kzpa-uw.myshopify.com/cart/52339098943821:1',
+            'Purple': 'https://n2kzpa-uw.myshopify.com/cart/52339099009357:1',
+            'Gray': 'https://n2kzpa-uw.myshopify.com/cart/52339099074893:1',
+            'Blue': 'https://n2kzpa-uw.myshopify.com/cart/52339099140429:1'
+        }
+    };
+
+    // Define updated pricing for each product
+    const productPricing = {
+        '7344655990842': { // Neck + Back Set
+            price: '£39.95',
+            comparePrice: '£69.95',
+            savings: '£30 GBP'
+        },
+        '7310552924218': { // Full Body Set
+            price: '£49.95',
+            comparePrice: '£99.95',
+            savings: '£50 GBP'
+        },
+        '7344674865210': { // 2x Full Body Set
+            price: '£99.95',
+            comparePrice: '£199.95',
+            savings: '£100 GBP'
+        }
+    };
+
+    // Function to update product pricing immediately
+    function updateProductPricing() {
+        Object.keys(productPricing).forEach(productId => {
+            const pricing = productPricing[productId];
+            
+            // Update main price
+            const priceElement = document.querySelector(`[data-product-type="price"][data-product-id="${productId}"] .money`);
+            if (priceElement) {
+                priceElement.textContent = pricing.price;
+            }
+            
+            // Update compare at price
+            const comparePriceElement = document.querySelector(`[data-product-type="compare_at_price"][data-product-id="${productId}"] .money`);
+            if (comparePriceElement) {
+                comparePriceElement.textContent = pricing.comparePrice;
+            }
+            
+            // Update savings text - find the paragraph containing "You save:"
+            const productBox = document.querySelector(`[data-product-id="${productId}"]`);
+            if (productBox) {
+                const savingsElements = productBox.querySelectorAll('p');
+                savingsElements.forEach(p => {
+                    if (p.textContent.includes('You save:')) {
+                        // Update the savings amount while preserving the structure
+                        const firstSel = p.querySelector('first-sel:last-child');
+                        if (firstSel) {
+                            firstSel.textContent = pricing.savings;
+                        } else {
+                            // Fallback: replace the entire text content
+                            p.innerHTML = `<first-sel style="font-weight: normal;">You save: </first-sel><first-sel style="">${pricing.savings}</first-sel>`;
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    // Function to get selected color for a specific product
+    function getSelectedColor(productId) {
+        const colorInputs = document.querySelectorAll(`input[name*="Color"][name*="${productId}"]:checked`);
+        if (colorInputs.length > 0) {
+            return colorInputs[0].value;
+        }
+        
+        // Fallback: get the first checked color input in the product form
+        const form = document.querySelector(`form[data-productid="${productId}"]`);
+        if (form) {
+            const checkedColorInput = form.querySelector('input[type="radio"]:checked');
+            if (checkedColorInput) {
+                return checkedColorInput.value;
+            }
+        }
+        
+        return null;
+    }
+
+    // Function to handle add to cart button clicks
+    function handleAddToCart(event) {
+        event.preventDefault(); // Prevent default form submission
+        
+        const button = event.target;
+        const productId = button.getAttribute('data-product-id');
+        
+        if (!productId) {
+            console.error('Product ID not found');
+            return;
+        }
+        
+        const selectedColor = getSelectedColor(productId);
+        
+        if (!selectedColor) {
+            alert('Please select a color before adding to cart');
+            return;
+        }
+        
+        // Get the redirect URL
+        const redirectUrl = productUrlMappings[productId] && productUrlMappings[productId][selectedColor];
+        
+        if (redirectUrl) {
+            // Optional: Show loading state
+            // button.textContent = button.getAttribute('data-adding') || 'Adding...';
+            // button.disabled = true;
+            
+            // Add a small delay to show the loading state
+            window.location.href = redirectUrl;
+            button.disabled = false;
+          
+        } else {
+            console.error(`No URL mapping found for product ${productId} with color ${selectedColor}`);
+            alert('Unable to process your request. Please try again.');
+        }
+    }
+
+    // Function to initialize the redirect handlers
+    function initializeRedirectHandlers() {
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeRedirectHandlers);
+            return;
+        }
+
+        // Update pricing immediately before doing anything else
+        updateProductPricing();
+
+        // Find all "ADD TO CART" buttons
+        const addToCartButtons = document.querySelectorAll('button[data-pf-type="ProductATC2"]');
+        
+        addToCartButtons.forEach(button => {
+            // Remove any existing event listeners to avoid duplicates
+            button.removeEventListener('click', handleAddToCart);
+            // Add the new event listener
+            button.addEventListener('click', handleAddToCart);
+        });
+
+        console.log(`Initialized redirect handlers for ${addToCartButtons.length} products`);
+    }
+
+    // Function to handle variant changes and update button state
+    function handleVariantChange(event) {
+        const input = event.target;
+        if (input.type === 'radio' && input.name.includes('Color')) {
+            // Find the product form this input belongs to
+            const form = input.closest('form');
+            if (form) {
+                const productId = form.getAttribute('data-productid');
+                const button = form.querySelector('button[data-pf-type="ProductATC2"]');
+                
+                if (button && productId) {
+                    // Reset button state when variant changes
+                    button.textContent = 'ADD TO CART';
+                    button.disabled = false;
+                    
+                    // Update hidden variant input if it exists
+                    const hiddenInput = form.querySelector('input[name="id"]');
+                    if (hiddenInput) {
+                        // You might want to update the variant ID here based on color selection
+                        // This depends on your specific variant ID structure
+                    }
+                }
+            }
+        }
+    }
+
+    // Initialize variant change handlers
+    function initializeVariantHandlers() {
+        const colorInputs = document.querySelectorAll('input[type="radio"][name*="Color"]');
+        colorInputs.forEach(input => {
+            input.addEventListener('change', handleVariantChange);
+        });
+    }
+
+    // Function to observe for any price changes and override them
+    function startPriceWatcher() {
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList' || mutation.type === 'characterData') {
+                    // Check if any price elements were modified
+                    const target = mutation.target;
+                    if (target.classList && target.classList.contains('money')) {
+                        // Get the product ID from the parent elements
+                        const priceContainer = target.closest('[data-product-id]');
+                        if (priceContainer) {
+                            const productId = priceContainer.getAttribute('data-product-id');
+                            if (productPricing[productId]) {
+                                // Re-apply our custom pricing
+                                updateProductPricing();
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        // Start observing
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            characterData: true
+        });
+    }
+
+    // Apply pricing immediately when script loads (before DOM ready)
+    updateProductPricing();
+
+    // Initialize everything
+    initializeRedirectHandlers();
+    initializeVariantHandlers();
+    startPriceWatcher();
+
+    // Public API for manual initialization (useful if content is loaded dynamically)
+    window.productRedirectHandler = {
+        reinitialize: function() {
+            initializeRedirectHandlers();
+            initializeVariantHandlers();
+            updateProductPricing();
+        },
+        updateUrlMappings: function(newMappings) {
+            Object.assign(productUrlMappings, newMappings);
+        },
+        updatePricing: function(newPricing) {
+            Object.assign(productPricing, newPricing);
+            updateProductPricing();
+        },
+        getCurrentSelection: function(productId) {
+            return {
+                productId: productId,
+                color: getSelectedColor(productId)
+            };
+        }
+    };
+
+})();
     </script>
 </html>
