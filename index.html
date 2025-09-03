@@ -4700,6 +4700,62 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         }
     };
 
+     // Define updated pricing for each product
+    const productPricing = {
+        '7344655990842': { // Neck + Back Set
+            price: '£39.95',
+            comparePrice: '£69.95',
+            savings: '£30 GBP'
+        },
+        '7310552924218': { // Full Body Set
+            price: '£49.95',
+            comparePrice: '£99.95',
+            savings: '£50 GBP'
+        },
+        '7344674865210': { // 2x Full Body Set
+            price: '£99.95',
+            comparePrice: '£199.95',
+            savings: '£100 GBP'
+        }
+    };
+
+    // Function to update product pricing immediately
+    function updateProductPricing() {
+        Object.keys(productPricing).forEach(productId => {
+            const pricing = productPricing[productId];
+            
+            // Update main price
+            const priceElement = document.querySelector(`[data-product-type="price"][data-product-id="${productId}"] .money`);
+            if (priceElement) {
+                priceElement.textContent = pricing.price;
+            }
+            
+            // Update compare at price
+            const comparePriceElement = document.querySelector(`[data-product-type="compare_at_price"][data-product-id="${productId}"] .money`);
+            if (comparePriceElement) {
+                comparePriceElement.textContent = pricing.comparePrice;
+            }
+            
+            // Update savings text - find the paragraph containing "You save:"
+            const productBox = document.querySelector(`[data-product-id="${productId}"]`);
+            if (productBox) {
+                const savingsElements = productBox.querySelectorAll('p');
+                savingsElements.forEach(p => {
+                    if (p.textContent.includes('You save:')) {
+                        // Update the savings amount while preserving the structure
+                        const firstSel = p.querySelector('first-sel:last-child');
+                        if (firstSel) {
+                            firstSel.textContent = pricing.savings;
+                        } else {
+                            // Fallback: replace the entire text content
+                            p.innerHTML = `<first-sel style="font-weight: normal;">You save: </first-sel><first-sel style="">${pricing.savings}</first-sel>`;
+                        }
+                    }
+                });
+            }
+        });
+    }
+
     // Function to get selected color for a specific product
     function getSelectedColor(productId) {
         const colorInputs = document.querySelectorAll(`input[name*="Color"][name*="${productId}"]:checked`);
@@ -4815,6 +4871,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     // Initialize everything
     initializeRedirectHandlers();
     initializeVariantHandlers();
+    updateProductPricing();
 
     // Public API for manual initialization (useful if content is loaded dynamically)
     window.productRedirectHandler = {
@@ -4838,7 +4895,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     </script> 
 
-    <script>
+    <!-- <script>
       // Product variant redirect handler with price management
 (function() {
     // Define URL mappings for each product and color combination
@@ -5097,7 +5154,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     };
 
 })();
-    </script>
+    </script> -->
 
 
 </html>
